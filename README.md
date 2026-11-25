@@ -1,27 +1,25 @@
-# Lab Activity 14 — Locking the Front Door
+# Part F · README
 
-## Part F — README
+### 1. What questions did my project answer last week and this week?
 
-### F1. Authentication and Authorization
+Last week, my project answered **“Who are you?”** through authentication, which identifies whether someone is logged in; this week, it answers **“What are you allowed to do?”** through authorization. My `MoviePolicy.php` answers the second question by checking user roles, while `routes/web.php` and its authentication routes and middleware handle the first question.
 
-This lesson taught me how to implement authentication in my Movie App, allowing users to register, log in, and log out securely. Authorization is still something I need to learn further, especially how to control what specific authenticated users are allowed to do.
+### 2. Why is `role` not in `$fillable`, but I can still set it in Tinker?
 
-### F2. Session Regeneration
+I excluded the `role` column from `$fillable` in my `User.php` model to prevent users from changing their own roles through mass assignment. I was still able to assign `$u->role = 'admin'` and save it in Tinker because direct property assignment does not use the `$fillable` protection. This protects sensitive fields such as `role` from being accidentally or maliciously changed through mass-assigned request data.
 
-I learned that `session()->regenerate()` creates a new session ID after a successful login to help prevent session fixation attacks. If I skip it, an attacker may be able to exploit an existing session ID and compromise a user's session.
+### 3. Why does a non-admin get a 403 while a guest gets redirected to login?
 
-### F3. Generic Login Error
+When a signed-in non-admin visits `/movies/create`, my `MoviePolicy.php` denies the action through `Gate::authorize()`, which produces a 403 Forbidden response. When a guest visits the same route, the `auth` middleware in `routes/web.php` redirects them to the login page because they have not authenticated yet.
 
-I used the same error message for an incorrect password and an email that does not exist to prevent attackers from identifying registered accounts. This makes my login page safer because it does not reveal which email addresses are registered in my Movie App.
+### 4. Why are my list and detail pages open to everyone?
 
-### F4. Public and Protected Routes
+I intentionally allowed everyone to access `/movies` and `/movies/{movie}` because visitors and regular users should be able to browse movie information without needing administrator privileges. My `MoviePolicy.php` reflects this decision because `viewAny()` and `view()` return `true`, while creating, updating, and deleting movies require the administrator role.
 
-I kept the `index` and `show` pages public because visitors should be able to browse the movie list and view movie details without logging in. I protected `create`, `edit`, `update`, and `destroy` because these routes allow users to add, modify, or delete movie records.
+### 5. Why did I put the role check in a policy instead of writing it twice?
 
-### F5. Hiding Buttons Is Not Security
+I placed the administrator role check in `MoviePolicy.php` so my `MovieController.php` and `movies/index.blade.php` can use the same authorization rules. If I manually wrote the role check in both places, I could accidentally make them inconsistent, causing the interface to show an action that the controller would reject or allowing the rules to become difficult to maintain.
 
-I hid the Add, Edit, and Delete buttons from guests to prevent them from seeing the movie management controls in the interface. However, hiding these buttons is not enough because someone can manually enter the URL, so I used the `auth` middleware to block unauthorized access to the protected routes.
+### 6. What does `SESSION_LIFETIME` count, and why was there no warning?
 
-### F6. Login Route Name
-
-I learned that Laravel's authentication middleware looks for a route named `login` when redirecting unauthenticated users to the login page. If I rename the route, Laravel cannot find the expected route and will throw a `Route [login] not defined` error.
+In my project, `SESSION_LIFETIME` specifies how many minutes a session may remain inactive before it expires; it does not measure the total time I spend logged in or the time a browser tab stays open. I received no warning because Laravel does not automatically display an expiration notification when the session expires, so I only discovered it after clicking a protected link and being redirected to the login page.
