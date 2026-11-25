@@ -7,11 +7,12 @@ use App\Models\Genre;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
  
 class MovieController extends Controller
 {
-    
+ 
 public function index(Request $request)
 {
     DB::enableQueryLog();
@@ -24,7 +25,9 @@ public function index(Request $request)
     $sort = $request->query('sort', 'title');
 
     // Allow only approved columns
-    if (!in_array($sort, ['title', 'year'])) {
+    $allowedSorts = ['title', 'year'];
+
+    if (!in_array($sort, $allowedSorts, true)) {
         $sort = 'title';
     }
 
@@ -50,7 +53,9 @@ public function index(Request $request)
     }
 
     // Sort, paginate, and preserve URL parameters
-    $items = $query->orderBy($sort)->paginate(6)->withQueryString();
+    $items = $query->orderBy($sort)
+        ->paginate(6)
+        ->withQueryString();
 
     return view('movies.index', compact(
         'items',
@@ -62,8 +67,10 @@ public function index(Request $request)
     ));
 }
 
+
     public function create()
     {  
+        Gate::authorize('create', Movie::class);
          $genres= Genre::all();
 
         return view('movies.create', compact('genres'));
@@ -71,6 +78,7 @@ public function index(Request $request)
 
     public function store(Request $request)
     {
+        Gate::authorize('create', Movie::class);
         $validated=$request->validate([
             'title' =>'required|string|min:5|max:100',
             'genre_id' =>'required|exists:genres,id',
@@ -107,12 +115,14 @@ public function index(Request $request)
 
     public function edit(Movie $movie)
    {
+    Gate::authorize('update', $movie);
     $genres = Genre::all();
     return view('movies.edit', compact('movie', 'genres'));
    }
 
     public function update(Request $request, Movie $movie)
     {
+    Gate::authorize('update', $movie);
     $validated = $request->validate([
         'title' => 'required|string|min:5|max:100',
         'genre_id' => 'required|exists:genres,id',
@@ -139,6 +149,7 @@ public function index(Request $request)
    
 public function destroy(Movie $movie)
 {
+    Gate::authorize('delete', $movie);
     abort_if($movie->genre->movies()->count() === 1, 403);
 
     $movie->delete();
