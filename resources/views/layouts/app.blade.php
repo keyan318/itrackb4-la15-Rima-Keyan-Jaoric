@@ -1,11 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>@yield('title', 'My Movie App')</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 
     <div class="bg-dark text-white py-4 mb-4">
@@ -16,16 +20,22 @@
     </div>
 
     <div class="container">
+
         @include('partials._nav')
 
         @if (session('success'))
-            <div class="alert alert-success mt-4">{{ session('success') }}</div>
+            <div class="alert alert-success mt-4">
+                {{ session('success') }}
+            </div>
         @endif
 
         <div class="mt-4">
             @yield('content')
         </div>
+
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
